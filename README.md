@@ -24,6 +24,7 @@ Y se ejecuta de la siguiente manera:
 ******************
 
 Autor: Corella Pérez Elda
+
 Consulta de algoritmos de las siguientes páginas:
 
 * http://penguin.ewu.edu/~trolfe/Queens/OptQueen.html
