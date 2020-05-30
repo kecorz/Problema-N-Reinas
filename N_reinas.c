@@ -1,38 +1,45 @@
+/*Realizado por: Elda Corella Pérez*/
+/* Sistemas Embebidos*/
+/*Algoritmos utilizados basados en la ṕagina http://penguin.ewu.edu/~trolfe/Queens/OptQueen.html*/
 #include <stdbool.h>
 #include <stdio.h>
 #include <omp.h>
 #include <stdlib.h>
 #include<time.h>
 
+/* Global variables*/
 int soluciones;
-int reinas;
+int queens;
 int col2 = 1;
 
-void safe_place(int tablero[reinas],int row,int col){
-
-	for (int i = 0; i < row; i++){
-			if (tablero[i] == col) return;
-			if (abs(tablero[i]-col) == row-i )return;
-		}
-
-	tablero[row] = col;
-	if(row == reinas - col2){   
-		if(soluciones == col2){
-			printf("aqui");
-	}
-		else{
-		printf("\nSolucion %d encontrada por hilo %d",soluciones +1 ,omp_get_thread_num()); 
-	}
-	
+void solution(){
+	/*Critical Section*/
 	#pragma omp atomic		
     	soluciones++;
-	}
-	else{
-		for(int i = 0; i<reinas; i++)
-			safe_place(tablero, row+1, i);
-	}
+    	//printf("soluciones %d", soluciones);
 }
 
+
+void safe_place(int board[queens],int row,int col){
+	/* check row*/	
+	for (int i = 0; i < row; i++){
+			if (board[i] == col) return;
+			if (abs(board[i]-col) == row-i ) return;
+		}
+	/*queen's position*/
+	board[row] = col;
+	if(row == queens - col2){  
+		//printf("\nSolucion %d encontrada por hilo %d",soluciones +1 ,omp_get_thread_num()); 
+		/*is a solution*/
+		solution();
+	}
+	else{
+		/* if isn't a solution check */
+		for(int i = 0; i<queens; i++){
+			safe_place(board, row+1, i);
+		}
+	}
+}
 
 
 int main(int argc, char* argv[]){
@@ -41,47 +48,56 @@ int main(int argc, char* argv[]){
 	int workers = 0;
 	
 	{
-		if (argc == 2) { //SI SE INGRESO UN VALOR DE REINAS, REALIZAR VALIDACIONES
+		if (argc == 2) { 
 			long verifica_letra = strtol(argv[1], &p, 10); 
+				/* check if the argument is a letter*/
 				if(p == argv[1]){
 					printf("Ingresaste un dato no numerico\n");
-					printf("Por favor intenga con ./reinas [numero de reinas entre 4 y 50]\n" );
+					printf("Por favor intenta con ./reinas [numero de reinas entre 4 y 50]\n" );
 					exit (0);
 				}
 				else{
-					sscanf(argv[1], "%d", &reinas);
-					if(reinas < 4 || reinas > 50){
+					sscanf(argv[1], "%d", &queens);
+
+					/*Check value range*/
+					if(queens < 4 || queens > 50){
 						printf("valor fuera de rango\n");
-						printf("Por favor intenga con ./reinas [numero de reinas entre 4 y 50]\n");
+						printf("Por favor intenta con ./reinas [numero de reinas entre 4 y 50]\n");
 						exit(0);
 						
 					}
 				}
 		}
 		else{
-			if(argc == 1){ //SE INGRESO UN DATO Y SE INICIA CON VALOR d DEFAULT
+			if(argc == 1){ //Code starts with default value
 				printf("No se ingresaron argumentos\n");
 				printf("Inicio de programa con valor DEFAULT : REINAS = 8\n");
-				reinas = 8;
+				queens = 8;
 			}
 
 		}
-
-		/******Creacion de workers*/
-		
-		
-	}
+		/* creation of workers*/
+		if(queens >= 4 & queens <= 14) {
+			workers = 6;
+		}else{
+			
+				workers = 12;
+			}
+			printf("\nNúmero de workers %d\n",workers);
+		}
 	
-	//Creacion de hilos 
-	omp_set_num_threads(4);
-	#pragma omp parallel for
-	/* Region paralela*/
+	//creation of threads
+	omp_set_num_threads(workers);
 
-	for (int i = 0; i < reinas; i++){
-	    int tablero[reinas];						
-		safe_place(tablero, 0,i);
+
+	#pragma omp parallel for
+	/*Parallel Region */
+	for (int i = 0; i < queens; i++){
+
+	    int board[queens];						
+		safe_place(board, 0,i);
 	}
 
-	printf("\n %d soluciones encontradas para el numero de reinas: %d\n", soluciones, reinas);				
+	printf("\n %d soluciones encontradas para el numero de reinas: %d\n", soluciones, queens);				
 	return 0;
 }
