@@ -1,6 +1,8 @@
+/* Solución al problema N Reinas con pragmaomp */
 /*Realizado por: Elda Corella Pérez*/
 /* Sistemas Embebidos*/
 /*Algoritmos utilizados basados en la ṕagina http://penguin.ewu.edu/~trolfe/Queens/OptQueen.html*/
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <omp.h>
